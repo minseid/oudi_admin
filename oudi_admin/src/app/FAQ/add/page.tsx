@@ -11,24 +11,15 @@ export default function AddFAQPage() {
     router.back();
   };
 
-  const handleSubmit = () => {
-    // FAQ 배열에 새로운 항목 추가
-    const newFaq = {
-      question: title,
-      answer: content
-    };
-
-    // 기존 FAQ 목록 가져오기
-    const existingFaqs = JSON.parse(localStorage.getItem('faqs') || '[]');
-    
-    // 새로운 FAQ 추가
-    existingFaqs.push(newFaq);
-    
-    // localStorage에 저장
-    localStorage.setItem('faqs', JSON.stringify(existingFaqs));
-
-    router.back();
-    router.refresh(); // 페이지 새로고침하여 추가된 FAQ 표시
+  const handleSubmit = async () => {
+    // API를 통해 FAQ 추가
+    await fetch('/api/FAQ', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: title, answer: content }),
+    });
+    router.push('/FAQ');
+    router.refresh();
   };
 
   return (

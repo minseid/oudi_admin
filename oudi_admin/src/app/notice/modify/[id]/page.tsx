@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 interface Notice {
   id: number;
   title: string;
-  content: string;
-  date: string;
+  description: string;
+  createAt: string;
 }
 
 export default function NoticeModifyPage({ params }: { params: { id: string } }) {
@@ -21,36 +21,29 @@ export default function NoticeModifyPage({ params }: { params: { id: string } })
   const [contentFocused, setContentFocused] = useState(false);
 
   useEffect(() => {
-    // localStorage에서 공지사항 가져오기
-    const storedNotices: Notice[] = JSON.parse(localStorage.getItem('notices') || '[]');
-    const foundNotice = storedNotices.find(n => n.id === Number(params.id));
-    
-    if (foundNotice) {
-      setNotice(foundNotice);
-      setTitle(foundNotice.title);
-      setContent(foundNotice.content);
-    }
+    // API에서 공지사항 불러오기
+    const fetchNotice = async () => {
+      const res = await fetch('/api/notice');
+      const data: Notice[] = await res.json();
+      const foundNotice = data.find(n => n.id === Number(params.id));
+      if (foundNotice) {
+        setNotice(foundNotice);
+        setTitle(foundNotice.title);
+        setContent(foundNotice.description);
+      }
+    };
+    fetchNotice();
   }, [params.id]);
 
   if (!notice) return <div>공지사항을 찾을 수 없습니다.</div>;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // localStorage에서 기존 공지사항 가져오기
-    const storedNotices: Notice[] = JSON.parse(localStorage.getItem('notices') || '[]');
-    
-    // 해당 공지사항 업데이트
-    const updatedNotices = storedNotices.map(n => 
-      n.id === Number(params.id) 
-        ? { ...n, title, content }
-        : n
-    );
-    
-    // localStorage에 저장
-    localStorage.setItem('notices', JSON.stringify(updatedNotices));
-    
-    alert('공지사항이 수정되었습니다.');
+    await fetch('/api/notice', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: notice.id, title, description: content }),
+    });
     router.push('/notice');
   };
 
@@ -111,7 +104,6 @@ export default function NoticeModifyPage({ params }: { params: { id: string } })
           value={content}
           onChange={e => setContent(e.target.value)}
           required
-          rows={8}
           style={{
             padding: 8,
             fontSize: 16,
@@ -121,6 +113,7 @@ export default function NoticeModifyPage({ params }: { params: { id: string } })
             transition: 'border-color 0.2s',
             background: '#fff',
             color: '#000',
+            minHeight: 120,
           }}
           onFocus={() => setContentFocused(true)}
           onBlur={() => setContentFocused(false)}

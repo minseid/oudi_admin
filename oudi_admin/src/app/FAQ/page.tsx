@@ -6,19 +6,24 @@ import { useRouter } from 'next/navigation';
 
 export default function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [faqs, setFaqs] = useState<Array<{question: string, answer: string}>>([]);
+  const [faqs, setFaqs] = useState<Array<{id: number, question: string, answer: string}>>([]);
   const router = useRouter();
 
-
+  // FAQ 목록 불러오기 (API)
   useEffect(() => {
-    const storedFaqs = JSON.parse(localStorage.getItem('faqs') || '[]');
-    setFaqs(storedFaqs);
+    fetch('/api/FAQ')
+      .then(res => res.json())
+      .then(data => setFaqs(data));
   }, []);
 
-  const handleDelete = (index: number) => {
-    const updatedFaqs = faqs.filter((_, idx) => idx !== index);
-    localStorage.setItem('faqs', JSON.stringify(updatedFaqs));
-    setFaqs(updatedFaqs);
+  // FAQ 삭제 (API)
+  const handleDelete = async (id: number) => {
+    await fetch('/api/FAQ', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    setFaqs(faqs.filter(faq => faq.id !== id));
     setOpenIndex(null);
   };
 
@@ -48,7 +53,7 @@ export default function FAQPage() {
       </button>
       <div>
         {faqs.map((faq, idx) => (
-          <div key={idx} className={idx < faqs.length - 1 ? "border-b" : ""}>
+          <div key={faq.id} className={idx < faqs.length - 1 ? "border-b" : ""}>
             <button
               className="w-full flex items-center justify-between text-left px-10 py-7 focus:outline-none hover:bg-gray-50 transition"
               onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
@@ -69,13 +74,13 @@ export default function FAQPage() {
                 {faq.answer}
                 <div className="flex gap-4 mt-4 justify-end">
                   <Link
-                    href={`/FAQ/modify/${idx}`}
+                    href={`/FAQ/modify/${faq.id}`}
                     className="text-sm font-semibold px-5 py-1.5 border-2 border-indigo-500 text-indigo-600 rounded-full hover:bg-indigo-50 transition"
                   >
                     수정
                   </Link>
                   <button 
-                    onClick={() => handleDelete(idx)}
+                    onClick={() => handleDelete(faq.id)}
                     className="text-sm font-semibold px-5 py-1.5 border-2 border-indigo-500 text-indigo-600 rounded-full hover:bg-indigo-50 transition"
                   >
                     삭제

@@ -15,7 +15,7 @@ const LogoutIcon = () => (
 
 const menus = [
   { name: "FAQ", href: "/FAQ", icon: FiMessageCircle  },
-  { name: "1:1 문의", href: "/inquiry", icon: FiMessageCircle  },
+  { name: "1:1 문의", href: "/question", icon: FiMessageCircle  },
   { name: "공지사항", href: "/notice", icon: FiBell  },
 ];
 

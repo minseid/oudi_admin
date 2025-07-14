@@ -7,35 +7,33 @@ export default function ModifyFAQPage({ params }: { params: { id: string } }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
+  // FAQ 데이터 불러오기 (API)
   useEffect(() => {
-    // localStorage에서 FAQ 목록 가져오기
-    const faqs = JSON.parse(localStorage.getItem('faqs') || '[]');
-    const faqIndex = parseInt(params.id);
-    
-    if (faqs[faqIndex]) {
-      setTitle(faqs[faqIndex].question);
-      setContent(faqs[faqIndex].answer);
-    }
+    type FAQ = { id: number; question: string; answer: string };
+    const fetchFAQ = async () => {
+      const res = await fetch('/api/FAQ');
+      const data: FAQ[] = await res.json();
+      const faq = data.find((item) => String(item.id) === params.id);
+      if (faq) {
+        setTitle(faq.question);
+        setContent(faq.answer);
+      }
+    };
+    fetchFAQ();
   }, [params.id]);
 
   const handleCancel = () => {
     router.back();
   };
 
-  const handleSubmit = () => {
-    const faqs = JSON.parse(localStorage.getItem('faqs') || '[]');
-    const faqIndex = parseInt(params.id);
-
-    // FAQ 수정
-    faqs[faqIndex] = {
-      question: title,
-      answer: content
-    };
-    
-    // localStorage에 저장
-    localStorage.setItem('faqs', JSON.stringify(faqs));
-
-    router.back();
+  // FAQ 수정 (API)
+  const handleSubmit = async () => {
+    await fetch('/api/FAQ', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: Number(params.id), question: title, answer: content }),
+    });
+    router.push('/FAQ');
     router.refresh();
   };
 

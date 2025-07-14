@@ -15,25 +15,13 @@ export default function NoticeAddPage() {
   const [content, setContent] = useState('');
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // 기존 공지사항 가져오기
-    const existingNotices: Notice[] = JSON.parse(localStorage.getItem('notices') || '[]');
-    
-    // 새 공지사항 생성
-    const newNotice: Notice = {
-      id: existingNotices.length > 0 ? Math.max(...existingNotices.map(n => n.id)) + 1 : 1,
-      title: title,
-      content: content,
-      date: new Date().toISOString().split('T')[0] // YYYY-MM-DD 형식
-    };
-    
-    // localStorage에 저장
-    const updatedNotices = [...existingNotices, newNotice];
-    localStorage.setItem('notices', JSON.stringify(updatedNotices));
-    
-    alert('공지사항이 저장되었습니다.');
+    await fetch('/api/notice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, description: content }),
+    });
     router.push('/notice');
   };
 
@@ -95,7 +83,6 @@ export default function NoticeAddPage() {
           value={content}
           onChange={e => setContent(e.target.value)}
           required
-          rows={8}
           style={{
             padding: 8,
             fontSize: 16,
@@ -105,6 +92,7 @@ export default function NoticeAddPage() {
             transition: 'border-color 0.2s',
             background: '#fff',
             color: '#000',
+            minHeight: 120,
           }}
           onFocus={e => (e.currentTarget.style.borderColor = '#111')}
           onBlur={e => (e.currentTarget.style.borderColor = '#e9ecef')}
