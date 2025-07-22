@@ -4,7 +4,7 @@ dotenv.config();
 
 const pool = mysql.createPool({
   host: 'where-db1.c3sewig4iszd.ap-northeast-2.rds.amazonaws.com',      
-  user: 'root',           
+  user: 'admin',           
   password: process.env.DB_PASS,   
   database: 'where_db', 
   waitForConnections: true,
