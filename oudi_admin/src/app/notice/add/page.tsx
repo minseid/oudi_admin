@@ -3,12 +3,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface Notice {
-  id: number;
-  title: string;
-  content: string;
-  date: string;
-}
 
 export default function NoticeAddPage() {
   const [title, setTitle] = useState('');
