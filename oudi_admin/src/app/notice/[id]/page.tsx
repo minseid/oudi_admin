@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Notice {
@@ -13,11 +13,30 @@ const initialNotices: Notice[] = [
   { id: 1, title: '[이벤트] <신규가입 이벤트> 당첨자 발표', content: `안녕하세요.\n어디 서비스 운영자입니다.\n\n2024년 신규가입 이벤트 당첨자를 발표합니다.\n\n<당첨자 발표>\n- 박불멍님\n- 이호창님\n- 김기범님\n\n축하드립니다!\n앱을 사용하시면서 불편하신 사항이 있으시다면 어디 앱 메뉴에서 [1:1문의]를 이용해주세요.\n감사합니다.`, date: '2025-06-01' },
 ];
 
-export default function NoticeDetailPage({ params }: { params: { id: string } }) {
+export default function NoticeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const notice = initialNotices.find(n => n.id === Number(params.id));
+  const [id, setId] = useState<string>("");
+  const [notice, setNotice] = useState<Notice | null>(null);
 
-  if (!notice) return <div>공지사항을 찾을 수 없습니다.</div>;
+  // params를 비동기로 처리
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
+  // id가 설정된 후 notice 찾기
+  useEffect(() => {
+    if (id) {
+      const foundNotice = initialNotices.find(n => n.id === Number(id));
+      setNotice(foundNotice || null);
+    }
+  }, [id]);
+
+  if (!notice && id) return <div>공지사항을 찾을 수 없습니다.</div>;
+  if (!notice) return <div>로딩중...</div>;
 
   const handleDelete = () => {
     alert('삭제 기능은 프론트에서만 구현되어 있습니다.');
@@ -82,4 +101,4 @@ export default function NoticeDetailPage({ params }: { params: { id: string } })
       </div>
     </div>
   );
-} 
+}

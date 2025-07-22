@@ -10,22 +10,34 @@ interface Notice {
   createAt: string;
 }
 
-export default function NoticeModifyPage({ params }: { params: { id: string } }) {
+export default function NoticeModifyPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [notice, setNotice] = useState<Notice | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [id, setId] = useState<string>("");
 
   // 포커스 상태 관리
   const [titleFocused, setTitleFocused] = useState(false);
   const [contentFocused, setContentFocused] = useState(false);
 
+  // params를 비동기로 처리
   useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!id) return; // id가 없으면 실행하지 않음
+
     // API에서 공지사항 불러오기
     const fetchNotice = async () => {
       const res = await fetch('/api/notice');
       const data: Notice[] = await res.json();
-      const foundNotice = data.find(n => n.id === Number(params.id));
+      const foundNotice = data.find(n => n.id === Number(id));
       if (foundNotice) {
         setNotice(foundNotice);
         setTitle(foundNotice.title);
@@ -33,12 +45,14 @@ export default function NoticeModifyPage({ params }: { params: { id: string } })
       }
     };
     fetchNotice();
-  }, [params.id]);
+  }, [id]);
 
-  if (!notice) return <div>공지사항을 찾을 수 없습니다.</div>;
+  if (!notice && id) return <div>공지사항을 찾을 수 없습니다.</div>;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!notice) return;
+
     await fetch('/api/notice', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },

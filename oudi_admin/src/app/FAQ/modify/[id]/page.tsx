@@ -2,25 +2,37 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function ModifyFAQPage({ params }: { params: { id: string } }) {
+export default function ModifyFAQPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [id, setId] = useState<string>("");
+
+  // params를 비동기로 처리
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params;
+      setId(resolvedParams.id);
+    };
+    getParams();
+  }, [params]);
 
   // FAQ 데이터 불러오기 (API)
   useEffect(() => {
+    if (!id) return; // id가 없으면 실행하지 않음
+
     type FAQ = { id: number; question: string; answer: string };
     const fetchFAQ = async () => {
       const res = await fetch('/api/FAQ');
       const data: FAQ[] = await res.json();
-      const faq = data.find((item) => String(item.id) === params.id);
+      const faq = data.find((item) => String(item.id) === id);
       if (faq) {
         setTitle(faq.question);
         setContent(faq.answer);
       }
     };
     fetchFAQ();
-  }, [params.id]);
+  }, [id]);
 
   const handleCancel = () => {
     router.back();
@@ -28,10 +40,12 @@ export default function ModifyFAQPage({ params }: { params: { id: string } }) {
 
   // FAQ 수정 (API)
   const handleSubmit = async () => {
+    if (!id) return;
+    
     await fetch('/api/FAQ', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: Number(params.id), question: title, answer: content }),
+      body: JSON.stringify({ id: Number(id), question: title, answer: content }),
     });
     router.push('/FAQ');
     router.refresh();
